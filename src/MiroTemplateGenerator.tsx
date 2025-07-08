@@ -8,6 +8,7 @@ import { saveTemplateToHistory, getTemplateHistory, clearTemplateHistory } from 
 import { exportTemplateAsImage } from './utils/imageExport';
 import QuickSuggestions from './components/QuickSuggestions';
 import TemplateHistory from './components/TemplateHistory';
+import BoardRenderer from './components/BoardRenderer';
 
 const MiroTemplateGenerator = () => {
   const [idea, setIdea] = useState('');
@@ -543,6 +544,16 @@ ${template.variations.map(v => `• ${v}`).join('\n')}`;
                   </div>
                 </div>
               </div>
+
+              {/* Visual Board Preview */}
+              {template && template.structure && (
+                <div className="mt-8">
+                  <h2 className="text-xl font-semibold text-gray-800 mb-4">🧩 Preview Visual do Board</h2>
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <BoardRenderer frames={template.structure.frames} />
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
