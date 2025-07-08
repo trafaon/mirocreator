@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Lightbulb, Download, Copy, Zap, Users, Target, ArrowRight, 
-  CheckCircle, FileJson, ExternalLink, Github, Image, History 
+  CheckCircle, FileJson, ExternalLink, Image, History 
 } from 'lucide-react';
 import { Template } from './types';
 import { saveTemplateToHistory, getTemplateHistory, clearTemplateHistory } from './utils/templateStorage';
@@ -17,10 +17,7 @@ const MiroTemplateGenerator = () => {
   const [showAPISettings, setShowAPISettings] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [miroToken, setMiroToken] = useState('');
-  const [githubToken, setGithubToken] = useState('');
-  const [githubRepo, setGithubRepo] = useState('');
   const [isCreatingBoard, setIsCreatingBoard] = useState(false);
-  const [isUploadingGithub, setIsUploadingGithub] = useState(false);
   const [isExportingImage, setIsExportingImage] = useState(false);
   const [templateHistory, setTemplateHistory] = useState<Template[]>([]);
 
@@ -281,25 +278,6 @@ ${template.variations.map(v => `• ${v}`).join('\n')}`;
     }
   };
 
-  const uploadToGithub = async () => {
-    if (!template || !githubToken || !githubRepo) {
-      alert('Configure o token do GitHub e repositório primeiro');
-      return;
-    }
-    
-    setIsUploadingGithub(true);
-    
-    try {
-      // GitHub API integration would go here
-      alert('Funcionalidade de upload para GitHub será implementada em breve!');
-    } catch (error) {
-      console.error('Erro ao enviar para GitHub:', error);
-      alert('Erro ao enviar para GitHub. Verifique o token e repositório.');
-    } finally {
-      setIsUploadingGithub(false);
-    }
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-4">
       <div className="max-w-6xl mx-auto">
@@ -351,49 +329,20 @@ ${template.variations.map(v => `• ${v}`).join('\n')}`;
           
           {showAPISettings && (
             <div className="mb-6 p-4 bg-gray-50 rounded-lg space-y-4">
-              <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Token do Miro (opcional)
-                  </label>
-                  <input
-                    type="password"
-                    value={miroToken}
-                    onChange={(e) => setMiroToken(e.target.value)}
-                    placeholder="Token da API do Miro"
-                    className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Para criar boards automaticamente no Miro
-                  </p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Token do GitHub (opcional)
-                  </label>
-                  <input
-                    type="password"
-                    value={githubToken}
-                    onChange={(e) => setGithubToken(e.target.value)}
-                    placeholder="Token do GitHub"
-                    className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Para salvar templates no GitHub
-                  </p>
-                </div>
-              </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Repositório GitHub (formato: user/repo)
+                  Token do Miro (opcional)
                 </label>
                 <input
-                  type="text"
-                  value={githubRepo}
-                  onChange={(e) => setGithubRepo(e.target.value)}
-                  placeholder="ex: meuuser/meus-templates"
+                  type="password"
+                  value={miroToken}
+                  onChange={(e) => setMiroToken(e.target.value)}
+                  placeholder="Token da API do Miro"
                   className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  Para criar boards automaticamente no Miro
+                </p>
               </div>
             </div>
           )}
@@ -482,20 +431,6 @@ ${template.variations.map(v => `• ${v}`).join('\n')}`;
                         <ExternalLink className="w-5 h-5" />
                       )}
                       {isCreatingBoard ? 'Criando...' : 'Criar no Miro'}
-                    </button>
-                  )}
-                  {githubToken && githubRepo && (
-                    <button
-                      onClick={uploadToGithub}
-                      disabled={isUploadingGithub}
-                      className="flex items-center gap-2 px-4 py-2 bg-gray-500/20 hover:bg-gray-500/30 rounded-lg transition-colors disabled:opacity-50"
-                    >
-                      {isUploadingGithub ? (
-                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                      ) : (
-                        <Github className="w-5 h-5" />
-                      )}
-                      {isUploadingGithub ? 'Enviando...' : 'Salvar no GitHub'}
                     </button>
                   )}
                 </div>
