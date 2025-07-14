@@ -11,10 +11,14 @@ interface MiroBoard {
 interface MiroFrame {
   id: string;
   title: string;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
+  position: {
+    x: number;
+    y: number;
+  };
+  geometry: {
+    width: number;
+    height: number;
+  };
 }
 
 interface MiroStickyNote {
@@ -124,8 +128,8 @@ export const createBoardFromTemplate = async (token: string, template: Template)
           content: element,
         },
         position: {
-          x: createdFrame.x + 50,
-          y: createdFrame.y + elementY,
+          x: createdFrame.position.x + 50,
+          y: createdFrame.position.y + elementY,
         },
         style: {
           fillColor: "#ffe066", // Yellow sticky note
