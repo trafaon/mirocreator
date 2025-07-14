@@ -6,6 +6,7 @@ import {
 import { Template } from './types';
 import { saveTemplateToHistory, getTemplateHistory, clearTemplateHistory } from './utils/templateStorage';
 import { exportTemplateAsImage } from './utils/imageExport';
+import { callClaudeApi, ClaudeApiError } from './utils/claudeApi';
 import QuickSuggestions from './components/QuickSuggestions';
 import TemplateHistory from './components/TemplateHistory';
 import BoardRenderer from './components/BoardRenderer';
@@ -69,12 +70,10 @@ Retorne APENAS um JSON válido (sem backticks ou texto adicional) seguindo exata
 `;
 
     try {
-      // Check if Claude API is available
-      if (typeof window.claude === 'undefined' || !window.claude.complete) {
-        throw new Error('Claude API não está disponível. Verifique se o serviço está configurado corretamente.');
-      }
-      
-      const response = await window.claude.complete(prompt);
+      const response = await callClaudeApi(prompt, {
+        max_tokens: 4000,
+        temperature: 0.7
+      });
       
       if (!response) {
         throw new Error('Resposta vazia da API do Claude');
@@ -93,9 +92,22 @@ Retorne APENAS um JSON válido (sem backticks ou texto adicional) seguindo exata
       saveTemplateToHistory(completeTemplate);
       setTemplateHistory(getTemplateHistory());
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao gerar template:', error);
-      alert('Erro ao gerar template. Tente novamente.');
+      
+      let errorMessage = 'Erro ao gerar template. Tente novamente.';
+      
+      if (error instanceof ClaudeApiError) {
+        if (error.status === 429) {
+          errorMessage = 'Limite de requisições excedido. Aguarde um momento e tente novamente.';
+        } else if (error.details) {
+          errorMessage = `${error.message}: ${error.details}`;
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
+      alert(errorMessage);
     } finally {
       setIsGenerating(false);
     }
