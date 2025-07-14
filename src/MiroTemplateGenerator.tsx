@@ -33,62 +33,18 @@ const MiroTemplateGenerator = () => {
     setIsGenerating(true);
     
     try {
-      // Simulating API call - replace with actual LLM integration
-      const mockTemplate: Template = {
+      const response = await window.claude.complete(prompt);
+      const templateData = JSON.parse(response);
+      
+      // Add metadata to the template
+      const completeTemplate: Template = {
+        ...templateData,
         id: Date.now().toString(),
-        title: "Template Gerado",
-        objective: "Objetivo baseado na ideia fornecida",
-        participants: ["Product Owner", "Scrum Master", "Desenvolvedores"],
-        duration: "90 minutos",
-        materials: ["Sticky notes virtuais", "Timer", "Quadro Miro"],
-        structure: {
-          frames: [
-            {
-              name: "Preparação",
-              description: "Frame inicial para contexto",
-              elements: ["Objetivo da sessão", "Regras", "Agenda"]
-            },
-            {
-              name: "Execução",
-              description: "Frame principal da atividade",
-              elements: ["Brainstorming", "Agrupamento", "Votação"]
-            }
-          ],
-          connections: ["Setas conectando frames", "Linhas de fluxo"]
-        },
-        facilitation: [
-          {
-            step: 1,
-            action: "Apresentar o objetivo da sessão",
-            time: "5 minutos",
-            coaching_tip: "Mantenha o foco no resultado esperado"
-          },
-          {
-            step: 2,
-            action: "Executar brainstorming individual",
-            time: "15 minutos",
-            coaching_tip: "Incentive quantidade sobre qualidade inicial"
-          }
-        ],
-        coaching_tips: [
-          "Mantenha energia alta durante toda sessão",
-          "Use timeboxing rigoroso",
-          "Facilite, não participe do conteúdo"
-        ],
-        variations: [
-          "Versão remota com breakout rooms",
-          "Adaptação para times grandes (15+ pessoas)",
-          "Versão assíncrona"
-        ],
         createdAt: new Date().toISOString()
       };
-
-      // In a real implementation, you would call your LLM API here
-      // const response = await callLLMAPI(idea);
-      // const templateData = JSON.parse(response);
       
-      setTemplate(mockTemplate);
-      saveTemplateToHistory(mockTemplate);
+      setTemplate(completeTemplate);
+      saveTemplateToHistory(completeTemplate);
       setTemplateHistory(getTemplateHistory());
       
     } catch (error) {
