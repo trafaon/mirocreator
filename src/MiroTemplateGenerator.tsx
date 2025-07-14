@@ -32,8 +32,54 @@ const MiroTemplateGenerator = () => {
     
     setIsGenerating(true);
     
+    const prompt = `
+Você é um especialista em facilitação ágil e design de workshops. Com base na ideia fornecida, crie um template estruturado para o Miro que ajude agile coaches a facilitar sessões eficazes.
+
+Ideia: "${idea}"
+
+Retorne APENAS um JSON válido (sem backticks ou texto adicional) seguindo exatamente esta estrutura:
+
+{
+  "title": "Nome do Template",
+  "objective": "Objetivo claro da sessão",
+  "participants": ["Tipo de participante 1", "Tipo de participante 2"],
+  "duration": "Tempo estimado",
+  "materials": ["Material 1", "Material 2"],
+  "structure": {
+    "frames": [
+      {
+        "name": "Nome do Frame",
+        "description": "Descrição do que vai neste frame",
+        "elements": ["Elemento 1", "Elemento 2", "Elemento 3"]
+      }
+    ],
+    "connections": ["Conexão 1", "Conexão 2"]
+  },
+  "facilitation": [
+    {
+      "step": 1,
+      "action": "Ação a ser realizada",
+      "time": "Tempo para esta etapa",
+      "coaching_tip": "Dica para o facilitador"
+    }
+  ],
+  "coaching_tips": ["Dica 1", "Dica 2"],
+  "variations": ["Variação 1", "Variação 2"]
+}
+`;
+
     try {
+      // Check if Claude API is available
+      if (typeof window.claude === 'undefined' || !window.claude.complete) {
+        throw new Error('Claude API não está disponível. Verifique se o serviço está configurado corretamente.');
+      }
+      
       const response = await window.claude.complete(prompt);
+      
+      if (!response) {
+        throw new Error('Resposta vazia da API do Claude');
+      }
+      
       const templateData = JSON.parse(response);
       
       // Add metadata to the template
