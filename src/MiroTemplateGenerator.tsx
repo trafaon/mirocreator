@@ -9,6 +9,7 @@ import { exportTemplateAsImage } from './utils/imageExport';
 import QuickSuggestions from './components/QuickSuggestions';
 import TemplateHistory from './components/TemplateHistory';
 import BoardRenderer from './components/BoardRenderer';
+import { createBoardFromTemplate } from './utils/miroApi';
 
 const MiroTemplateGenerator = () => {
   const [idea, setIdea] = useState('');
@@ -269,11 +270,11 @@ ${template.variations.map(v => `• ${v}`).join('\n')}`;
     setIsCreatingBoard(true);
     
     try {
-      // Miro API integration would go here
-      alert('Funcionalidade de integração com Miro será implementada em breve!');
+      const newBoard = await createBoardFromTemplate(miroToken, template);
+      alert(`Board '${newBoard.name}' criado com sucesso! Link: ${newBoard.viewLink}`);
     } catch (error) {
-      console.error('Erro ao criar board no Miro:', error);
-      alert('Erro ao criar board no Miro. Verifique o token e tente novamente.');
+      console.error("Erro ao criar board no Miro:", error);
+      alert(`Erro ao criar board no Miro: ${error.message}. Verifique o token e tente novamente.`);
     } finally {
       setIsCreatingBoard(false);
     }
