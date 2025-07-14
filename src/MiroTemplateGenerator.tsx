@@ -33,8 +33,9 @@ const MiroTemplateGenerator = () => {
     
     setIsGenerating(true);
     
-    const prompt = `
-Você é um especialista em facilitação ágil e design de workshops. Com base na ideia fornecida, crie um template estruturado para o Miro que ajude agile coaches a facilitar sessões eficazes.
+    try {
+      // Primeiro, vamos tentar usar a API real do Claude
+      const prompt = `Você é um especialista em facilitação ágil e design de workshops. Com base na ideia fornecida, crie um template estruturado para o Miro que ajude agile coaches a facilitar sessões eficazes.
 
 Ideia: "${idea}"
 
@@ -66,20 +67,29 @@ Retorne APENAS um JSON válido (sem backticks ou texto adicional) seguindo exata
   ],
   "coaching_tips": ["Dica 1", "Dica 2"],
   "variations": ["Variação 1", "Variação 2"]
-}
-`;
+}`;
 
-    try {
-      const response = await callClaudeApi(prompt, {
-        max_tokens: 4000,
-        temperature: 0.7
-      });
+      let templateData: any;
       
-      if (!response) {
-        throw new Error('Resposta vazia da API do Claude');
+      try {
+        // Tentar usar a API real do Claude primeiro
+        const response = await callClaudeApi(prompt, {
+          max_tokens: 4000,
+          temperature: 0.7
+        });
+        
+        if (!response) {
+          throw new Error('Resposta vazia da API do Claude');
+        }
+        
+        templateData = JSON.parse(response);
+        
+      } catch (claudeError: any) {
+        console.warn('Claude API não disponível, usando fallback inteligente:', claudeError);
+        
+        // Fallback inteligente baseado na sua lógica
+        templateData = generateIntelligentFallback(idea);
       }
-      
-      const templateData = JSON.parse(response);
       
       // Add metadata to the template
       const completeTemplate: Template = {
@@ -94,23 +104,336 @@ Retorne APENAS um JSON válido (sem backticks ou texto adicional) seguindo exata
       
     } catch (error: any) {
       console.error('Erro ao gerar template:', error);
-      
-      let errorMessage = 'Erro ao gerar template. Tente novamente.';
-      
-      if (error instanceof ClaudeApiError) {
-        if (error.status === 429) {
-          errorMessage = 'Limite de requisições excedido. Aguarde um momento e tente novamente.';
-        } else if (error.details) {
-          errorMessage = `${error.message}: ${error.details}`;
-        } else {
-          errorMessage = error.message;
-        }
-      }
-      
-      alert(errorMessage);
+      alert('Erro ao gerar template. Tente novamente.');
     } finally {
       setIsGenerating(false);
     }
+  };
+
+  // Função de fallback inteligente baseada na sua lógica
+  const generateIntelligentFallback = (idea: string): Omit<Template, 'id' | 'createdAt'> => {
+    const lowerIdea = idea.toLowerCase();
+
+    // Análise de Riscos
+    if (lowerIdea.includes("risco") || lowerIdea.includes("mitigação") || lowerIdea.includes("risk")) {
+      return {
+        title: "Análise de Riscos do Projeto",
+        objective: "Identificar e avaliar os principais riscos do projeto, bem como definir planos de mitigação",
+        participants: ["Gerentes de Projeto", "Líderes Técnicos", "Stakeholders-Chave"],
+        duration: "2-3 horas",
+        materials: ["Quadro Miro", "Post-its virtuais", "Timer"],
+        structure: {
+          frames: [
+            {
+              name: "Matriz de Probabilidade vs Impacto",
+              description: "Quadrante dividido em 4 áreas: baixo risco, risco moderado, alto risco e risco crítico",
+              elements: ["Eixo X: Probabilidade", "Eixo Y: Impacto", "Área de Quadrantes", "Legenda de Cores"]
+            },
+            {
+              name: "Riscos Identificados",
+              description: "Lista de riscos identificados com detalhes",
+              elements: ["Sticky Notes de Riscos", "Categorias", "Responsáveis"]
+            },
+            {
+              name: "Planos de Mitigação",
+              description: "Ações específicas para cada risco prioritário",
+              elements: ["Ações de Mitigação", "Prazos", "Responsáveis", "Status"]
+            }
+          ],
+          connections: ["Setas conectando matriz aos riscos", "Linhas ligando riscos aos planos"]
+        },
+        facilitation: [
+          {
+            step: 1,
+            action: "Apresentar o objetivo da sessão e explicar a matriz de probabilidade vs impacto",
+            time: "10 minutos",
+            coaching_tip: "Use exemplos práticos para explicar a matriz. Certifique-se de que todos entendam antes de prosseguir"
+          },
+          {
+            step: 2,
+            action: "Brainstorming de riscos - cada participante adiciona riscos em sticky notes",
+            time: "30 minutos",
+            coaching_tip: "Encoraje pensamento divergente. Não julgue ou filtre nesta etapa. Capture todos os riscos mencionados"
+          },
+          {
+            step: 3,
+            action: "Categorizar e agrupar riscos similares",
+            time: "15 minutos",
+            coaching_tip: "Facilite discussões para agrupar riscos relacionados. Evite debates longos sobre categorização"
+          },
+          {
+            step: 4,
+            action: "Avaliar probabilidade e impacto de cada risco e posicionar na matriz",
+            time: "45 minutos",
+            coaching_tip: "Facilite discussões e busque consenso. Use votação se necessário para resolver impasses"
+          },
+          {
+            step: 5,
+            action: "Priorizar riscos críticos e de alto impacto",
+            time: "15 minutos",
+            coaching_tip: "Foque nos riscos do quadrante superior direito. Limite a 5-7 riscos prioritários"
+          },
+          {
+            step: 6,
+            action: "Definir planos de mitigação para riscos prioritários",
+            time: "45 minutos",
+            coaching_tip: "Garanta que os planos sejam específicos, mensuráveis e acionáveis. Defina responsáveis e prazos"
+          }
+        ],
+        coaching_tips: [
+          "Mantenha a energia alta com timeboxing rigoroso",
+          "Encoraje participação equilibrada de todos os membros",
+          "Use técnicas de facilitação como 'fist to five' para medir consenso",
+          "Documente decisões e próximos passos claramente",
+          "Prepare-se para mediar conflitos sobre priorização de riscos"
+        ],
+        variations: [
+          "Adicionar uma etapa de análise de impacto financeiro dos riscos",
+          "Incluir análise de oportunidades (riscos positivos)",
+          "Dividir em duas sessões: identificação e avaliação/mitigação",
+          "Usar técnica de 'Pre-mortem' para identificar riscos",
+          "Adicionar revisão de riscos de projetos anteriores"
+        ]
+      };
+    }
+
+    // Retrospectiva
+    if (lowerIdea.includes("retrospectiva") || lowerIdea.includes("retro") || lowerIdea.includes("sprint review")) {
+      return {
+        title: "Retrospectiva de Sprint",
+        objective: "Refletir sobre o sprint anterior e identificar melhorias para o próximo ciclo",
+        participants: ["Scrum Master", "Product Owner", "Desenvolvedores", "QA"],
+        duration: "1.5-2 horas",
+        materials: ["Quadro Miro", "Timer", "Post-its virtuais"],
+        structure: {
+          frames: [
+            {
+              name: "What Went Well",
+              description: "Aspectos positivos do sprint",
+              elements: ["Sticky notes verdes", "Agrupamento por temas", "Votação de prioridade"]
+            },
+            {
+              name: "What Could Be Improved",
+              description: "Pontos de melhoria identificados",
+              elements: ["Sticky notes amarelos", "Categorização", "Root cause analysis"]
+            },
+            {
+              name: "Action Items",
+              description: "Ações concretas para o próximo sprint",
+              elements: ["Tasks específicas", "Responsáveis", "Prazos", "Critérios de sucesso"]
+            }
+          ],
+          connections: ["Setas dos problemas para as ações", "Agrupamentos temáticos"]
+        },
+        facilitation: [
+          {
+            step: 1,
+            action: "Check-in e definição do tom da retrospectiva",
+            time: "10 minutos",
+            coaching_tip: "Crie um ambiente seguro. Use uma atividade quebra-gelo se necessário"
+          },
+          {
+            step: 2,
+            action: "Coleta individual de pontos positivos (What Went Well)",
+            time: "15 minutos",
+            coaching_tip: "Comece sempre pelo positivo. Encoraje especificidade nos comentários"
+          },
+          {
+            step: 3,
+            action: "Compartilhamento e agrupamento dos pontos positivos",
+            time: "15 minutos",
+            coaching_tip: "Celebre os sucessos. Identifique padrões que podem ser replicados"
+          },
+          {
+            step: 4,
+            action: "Coleta de pontos de melhoria (What Could Be Improved)",
+            time: "20 minutos",
+            coaching_tip: "Foque em fatos, não pessoas. Encoraje linguagem construtiva"
+          },
+          {
+            step: 5,
+            action: "Discussão e priorização dos pontos de melhoria",
+            time: "25 minutos",
+            coaching_tip: "Use dot voting para priorizar. Limite a 3-5 itens principais"
+          },
+          {
+            step: 6,
+            action: "Definição de action items específicos",
+            time: "20 minutos",
+            coaching_tip: "Garanta que cada ação tenha responsável, prazo e critério de sucesso definidos"
+          },
+          {
+            step: 7,
+            action: "Check-out e próximos passos",
+            time: "5 minutos",
+            coaching_tip: "Confirme compromissos e agende follow-ups se necessário"
+          }
+        ],
+        coaching_tips: [
+          "Mantenha foco em melhorias controláveis pelo time",
+          "Evite que a sessão vire sessão de reclamações",
+          "Use a regra 'Vegas': o que acontece na retro, fica na retro",
+          "Varie o formato das retrospectivas para manter engajamento",
+          "Acompanhe o progresso dos action items do sprint anterior"
+        ],
+        variations: [
+          "Usar formato 'Start, Stop, Continue'",
+          "Aplicar técnica '4Ls: Liked, Learned, Lacked, Longed for'",
+          "Retrospectiva temática (foco em qualidade, comunicação, etc.)",
+          "Timeline retrospective para sprints longos",
+          "Mad, Sad, Glad format para times mais maduros"
+        ]
+      };
+    }
+
+    // Planning Poker
+    if (lowerIdea.includes("planning poker") || lowerIdea.includes("estimativa") || lowerIdea.includes("story points")) {
+      return {
+        title: "Planning Poker Session",
+        objective: "Estimar user stories usando técnica colaborativa de Planning Poker",
+        participants: ["Product Owner", "Scrum Master", "Desenvolvedores", "QA", "UX Designer"],
+        duration: "2-4 horas",
+        materials: ["Cartas de Planning Poker", "Backlog refinado", "Timer"],
+        structure: {
+          frames: [
+            {
+              name: "Product Backlog",
+              description: "Lista de user stories a serem estimadas",
+              elements: ["User Stories", "Critérios de Aceitação", "Prioridade", "Dependências"]
+            },
+            {
+              name: "Estimation Board",
+              description: "Área para discussão e votação",
+              elements: ["Story em discussão", "Cartas reveladas", "Consenso", "Notas de discussão"]
+            },
+            {
+              name: "Estimated Stories",
+              description: "Stories já estimadas com story points",
+              elements: ["Stories finalizadas", "Story Points", "Observações", "Riscos identificados"]
+            }
+          ],
+          connections: ["Fluxo do backlog para estimação", "Stories estimadas movem para área final"]
+        },
+        facilitation: [
+          {
+            step: 1,
+            action: "Explicar o processo de Planning Poker e revisar escala de pontos",
+            time: "15 minutos",
+            coaching_tip: "Certifique-se de que todos entendem a escala Fibonacci e o conceito de story points"
+          },
+          {
+            step: 2,
+            action: "Product Owner apresenta a primeira user story",
+            time: "5-10 minutos por story",
+            coaching_tip: "Encoraje perguntas de esclarecimento. Garanta que todos entendam os critérios de aceitação"
+          },
+          {
+            step: 3,
+            action: "Discussão técnica e esclarecimento de dúvidas",
+            time: "5-15 minutos por story",
+            coaching_tip: "Facilite discussões técnicas. Evite soluções detalhadas - foque no entendimento"
+          },
+          {
+            step: 4,
+            action: "Votação simultânea com cartas de Planning Poker",
+            time: "2 minutos por rodada",
+            coaching_tip: "Garanta que todos votem simultaneamente. Não permita influência entre votos"
+          },
+          {
+            step: 5,
+            action: "Discussão de discrepâncias nas estimativas",
+            time: "5-10 minutos",
+            coaching_tip: "Foque nas estimativas mais altas e baixas. Busque entender as diferentes perspectivas"
+          },
+          {
+            step: 6,
+            action: "Nova rodada de votação até consenso",
+            time: "Variável",
+            coaching_tip: "Limite a 3 rodadas por story. Se não houver consenso, use a média ou adie a story"
+          }
+        ],
+        coaching_tips: [
+          "Mantenha o foco na estimativa relativa, não absoluta",
+          "Evite que desenvolvedores seniores dominem as discussões",
+          "Use timeboxing rigoroso para evitar over-analysis",
+          "Documente assumptions importantes feitas durante estimação",
+          "Celebre quando o time alcança consenso rapidamente"
+        ],
+        variations: [
+          "Usar T-shirt sizing (XS, S, M, L, XL) em vez de Fibonacci",
+          "Planning Poker assíncrono para times distribuídos",
+          "Incluir estimativa de risco além de complexidade",
+          "Usar referência de stories já implementadas",
+          "Combinar com técnica de Three-Point Estimation"
+        ]
+      };
+    }
+
+    // Template genérico para outras ideias
+    return {
+      title: "Workshop Colaborativo",
+      objective: `Facilitar uma sessão colaborativa baseada na ideia: ${idea}`,
+      participants: ["Facilitador", "Stakeholders", "Equipe"],
+      duration: "2-3 horas",
+      materials: ["Quadro Miro", "Post-its virtuais", "Timer"],
+      structure: {
+        frames: [
+          {
+            name: "Contexto e Objetivo",
+            description: "Definição clara do problema e objetivos da sessão",
+            elements: ["Problema definido", "Objetivos SMART", "Critérios de sucesso"]
+          },
+          {
+            name: "Ideação e Discussão",
+            description: "Espaço para brainstorming e desenvolvimento de ideias",
+            elements: ["Ideias geradas", "Agrupamentos", "Discussões"]
+          },
+          {
+            name: "Decisões e Próximos Passos",
+            description: "Consolidação de decisões e definição de ações",
+            elements: ["Decisões tomadas", "Action items", "Responsáveis", "Prazos"]
+          }
+        ],
+        connections: ["Fluxo do contexto para ideação", "Das ideias para as decisões"]
+      },
+      facilitation: [
+        {
+          step: 1,
+          action: "Apresentar contexto e objetivos da sessão",
+          time: "15 minutos",
+          coaching_tip: "Garanta alinhamento sobre o propósito antes de começar"
+        },
+        {
+          step: 2,
+          action: "Facilitar brainstorming de ideias",
+          time: "45 minutos",
+          coaching_tip: "Encoraje participação de todos. Use técnicas de pensamento divergente"
+        },
+        {
+          step: 3,
+          action: "Agrupar e priorizar ideias",
+          time: "30 minutos",
+          coaching_tip: "Use dot voting ou outras técnicas de priorização colaborativa"
+        },
+        {
+          step: 4,
+          action: "Definir próximos passos e responsabilidades",
+          time: "30 minutos",
+          coaching_tip: "Garanta que cada ação tenha responsável e prazo definidos"
+        }
+      ],
+      coaching_tips: [
+        "Mantenha energia alta com timeboxing",
+        "Facilite participação equilibrada",
+        "Documente decisões claramente",
+        "Foque em resultados acionáveis"
+      ],
+      variations: [
+        "Adaptar duração conforme complexidade",
+        "Incluir breakout rooms para grupos menores",
+        "Adicionar etapas de validação das ideias"
+      ]
+    };
   };
 
   const copyToClipboard = () => {
